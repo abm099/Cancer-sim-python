@@ -3,6 +3,8 @@
 import numpy as np 
 import timeStep 
 
+# this is to check whether the branch is being pushed to gihub
+
 seed_value = timeStep.seed_setter()
 
 f = open(f"./simulation_Files/redearEditor_seed({seed_value}).txt", "w") 
