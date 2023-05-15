@@ -23,6 +23,11 @@ prob_mutate = 0.001 # probability of a cell mutating
 
 factor = 0.75 # factor by which the cell proliferates 
 
+#this bools are to switch the treatments on and off
+# false indicates treatment is off and true indicates treatment is on
+treat_cell_kill = False
+treat_cell_slow = False
+
 def seed_setter():
     seed_value = int(time.time())
     random.seed(seed_value)
@@ -124,11 +129,15 @@ class Solution:
     def cell_treatment(cell_pop):
         global prob_death_sens, treat_applied
         if cell_pop > 2000:
-            Solution.treat_cell_kill()
-            Solution.treat_cell_slow()
+            if treat_cell_kill == True:
+                Solution.treat_cell_kill()
+                treat_applied = True
+            if treat_cell_slow == True:
+                Solution.treat_cell_slow()
+                treat_applied = True
+        if treat_applied == True:
             print("Treatment applied")
-            treat_applied = True
-        
+     
     
 #the time step function will print the matrix after each time step
     def runCycle(l, f):
