@@ -26,7 +26,7 @@ def create_img(cell_array,p):
 
     img = Image.fromarray(array) # fromarray() takes a numpy array and returns a PIL image
     img = img.resize([int(resize_factor*x) for x in img.size], Image.BOX) # resize the image
-    img.save(f'./results/img_{p}.jpeg')
+    img.save(f'../CellModel/results/img_{p}.jpeg')
     # img.show() # show the image
 
 
