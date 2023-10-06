@@ -24,14 +24,16 @@ prob_mutate = 0.001 # probability of a cell mutating
 cell_applied_kill = False # this bool is to check if the treatment has been applied to the cell
 cell_applied_slow = False # this bool is to check if the treatment has been applied to the cell
 
-factor_slow = 0.65 # factor by which the cell proliferates
-factor_kill = 1.05 # factor by which the cell dies
+factor_slow = 0.75 # factor by which the cell proliferates
+factor_kill = 1.65 # factor by which the cell dies
+start_treat = 7600 # start of treatment
+stop_treat = 7500 # stop of treatment
 
 # THESE ARE THE VARIABLES THAT CAN BE CHANGED BY THE USER
 treat_cell_kill = True # this bool is to enable the treatment to kill the increase the probability of death of the cell
 treat_cell_slow = True # this bool is to enable the treatment to slow the proliferation of the cell
-inter_treat = True # this bool is to enable the treatment to be applied at selected intervals
-control_treat = False # this bool is to enable the treatment that is applied to be controlled by the population of the cell
+inter_treat = False # this bool is to enable the treatment to be applied at selected intervals
+control_treat = True # this bool is to enable the treatment that is applied to be controlled by the population of the cell
 # inter and control treat cannot be true at the same time
 
 # this function will set the seed value for the random function
@@ -39,6 +41,10 @@ def seed_setter():
     seed_value = int(time.time())
     random.seed(seed_value)
     return seed_value
+
+def send_parameters():
+    return start_treat, stop_treat, factor_slow, factor_kill, treat_cell_kill, treat_cell_slow, inter_treat, control_treat
+
     
 class Solution:
     # this function will kill a cell with a probability of prob_death
@@ -148,46 +154,43 @@ class Solution:
         global cell_applied_kill, cell_applied_slow
         if total_cells > 4000:
             x, y, z, w, v, t = 100, 125, 150, 175, 200, 225
-            num_steps = 13 # number of time steps the treatment will be applied for REMEMBER TO ALSO ADD ONE MORE THAN DESIRED NUMBER OF TIME STEPS
+            num_steps = 5 # number of time steps the treatment will be applied for REMEMBER TO ALSO ADD ONE MORE THAN DESIRED NUMBER OF TIME STEPS
             time_treatment = list(range(x, x+ num_steps)) + list(range(y, y+ num_steps)) + list(range(z, z+ num_steps)) + list(range(w, w+ num_steps)) + list(range(v, v+ num_steps)) + list(range(t, t+ num_steps))
             total_range = [c for c in range(num_times) if c not in time_treatment]
             if n in time_treatment:
                 if treat_cell_kill == True:
                     if cell_applied_kill == False:
                         Solution.treat_cell_kill()
-                        print("kill on")
                 if treat_cell_slow == True:
                     if cell_applied_slow == False:
                         Solution.treat_cell_slow()
-                        print("slow on")
             if n in total_range:
                 if treat_cell_kill == True:
                     if cell_applied_kill == True:
                         Solution.treat_cell_kill_off()
-                        print("kill off")
                 if treat_cell_slow == True:
                     if cell_applied_slow == True:
                         Solution.treat_cell_slow_off()
-                        print("slow off")
     
     # this function will apply the treatment to the cells if the population in a certain range
     # the tumor should be maintained betweeen 4800 and 5200 cells
     def control_treatment(total_cells):
         global cell_applied_kill, cell_applied_slow
-        if total_cells > 8800:
+        if total_cells > start_treat:
             if treat_cell_kill == True:
                 if cell_applied_kill == False:
                     Solution.treat_cell_kill()
             if treat_cell_slow == True:
                 if cell_applied_slow == False: 
                     Solution.treat_cell_slow()
-        if total_cells < 8600:
+        if total_cells < stop_treat:
             if treat_cell_kill == True:
                 if cell_applied_kill == True:
                     Solution.treat_cell_kill_off()
             if treat_cell_slow == True:
                 if cell_applied_slow == True:
-                    Solution.treat_cell_slow_off()         
+                    Solution.treat_cell_slow_off()
+        return          
             
     def cell_treatment(n, cell_pop, num_times):
         global treat_applied
