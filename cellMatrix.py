@@ -1,6 +1,5 @@
 # first we make the cell matrix 
 
-import os
 import numpy as np 
 import timeStep 
 import imageConverter as ic

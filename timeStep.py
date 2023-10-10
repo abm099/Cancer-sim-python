@@ -4,9 +4,13 @@ import random
 import numpy as np
 import time
 
-# cell death and birth 
-# non-mutated cell is denote by 1 and dead cell is denote by 0 and mutated cell is denote by 2
-# non-mutated cells are sensitive to the treatment and mutated cells are resistant to the treatment
+# cell death and birth
+# dead cell is denote by 0 are meant to be empty spaces
+# sensitive cells are denote by 1 and are responsive to the treatment
+# resistant cell are denote by 2 and are not responsive to the treatment
+# pilot cells are denote by 3 and have the same properties as the sensitive cells when the treatment is not applied and slightly resistant to the treatment when the treatment is applied
+ 
+# non-mutated cells are   and mutated cells are resistant to the treatment
 # a time step is a single iteration of the matrix
 # a cell can die or mutate or stay the same
 # false indicates treatment is off and true indicates treatment is on
@@ -17,10 +21,16 @@ treat_applied = False # boolean to check if the treatment has been applied
 
 prob_death_sens = 0.15 # probability of a sensitive cell dying
 prob_death_res = 0.15 # probability of a sensitive cell dying
+prob_death_pers = 0.15 # probability of a sensitive cell dying
+
 prob_birth_sens = 0.425 # probability of a non-mutated cell being born
 prob_birth_res = 0.40 # probability of a resistant cell being born
+prob_birth_pers = 0.425 # probability of a persistent cell being born
 
-prob_mutate = 0.001 # probability of a cell mutating
+prob_mutate_res = 0.001 # probability of a cell mutating to a resistant cell
+prob_mutate_pers = 0.001 # probability of a cell mutating to a persistent cell
+
+
 cell_applied_kill = False # this bool is to check if the treatment has been applied to the cell
 cell_applied_slow = False # this bool is to check if the treatment has been applied to the cell
 
@@ -45,6 +55,20 @@ def seed_setter():
 def send_parameters():
     return start_treat, stop_treat, factor_slow, factor_kill, treat_cell_kill, treat_cell_slow, inter_treat, control_treat
 
+# the persister cells are slightly resistant to the treatment
+def pers_birth(prob_birth_pers, treat_applied): 
+    if treat_applied == True:
+        prob_birth_pers = prob_birth_pers * 0.90
+    else: 
+        prob_birth_pers = prob_birth_pers
+    return prob_birth_pers
+
+def pers_death(prob_death_pers, treat_applied):
+    if treat_applied == True:
+        prob_death_pers = prob_death_pers * 1.1
+    else:
+        prob_death_pers = prob_death_pers
+    return prob_death_pers
     
 class Solution:
     # this function will kill a cell with a probability of prob_death
@@ -52,6 +76,8 @@ class Solution:
         if k[i][j] == 1 and random.random() < prob_death_sens:
             k[i][j] = 0
         elif k[i][j] == 2 and random.random() < prob_death_res:
+            k[i][j] = 0
+        elif k[i][j] == 3 and random.random() < pers_death(prob_death_pers, treat_applied):
             k[i][j] = 0
         return k
      
@@ -85,8 +111,10 @@ class Solution:
             # randomly choose one of the empty cells around the cell using the list of coordinates
                 rand = random.randint(0, len(nei)-1)
                 a , b = nei[rand]
-                if random.random() < prob_mutate:
+                if random.random() < prob_mutate_res:
                     k[a][b] = 2
+                if random.random() < prob_mutate_pers:
+                    k[a][b] = 3
                 elif random.random() < prob_birth_sens:
                     k[a][b] = 1
         if k[i][j] == 2:
@@ -98,6 +126,15 @@ class Solution:
                     rand = random.randint(0, len(mut)-1)
                     a , b = mut[rand]
                     k[a][b] = 2
+        if k[i][j] == 3:
+            mut = []
+            Solution.cellsCount(k,i,j,mut,row,col)
+            if mut:
+            # randomly choose one of the empty cells around the cell using the list of coordinates
+                if random.random() < pers_birth(prob_birth_pers, treat_applied):
+                    rand = random.randint(0, len(mut)-1)
+                    a , b = mut[rand]
+                    k[a][b] = 3
 
     # how to make a function that returns one to one of the empty cells around a cell     
     def time(k):  
@@ -106,14 +143,17 @@ class Solution:
         listCells = [] # list of coordinates of the live cells
         sens = 0
         res = 0
+        pers = 0
         for j in range(col):
             for i in range(row):
                 # this will return a random live cell 
-                if k[i][j] in [1,2]:
+                if k[i][j] in [1,2,3]:
                     if k[i][j] == 2:
                         res += 1
                     elif k[i][j] == 1:
                         sens += 1
+                    elif k[i][j] == 3:
+                        pers += 1
                     listCells.append((i,j))
                 # loop that will randomly choose a live cell, check whether to kill it, if alive then it will grow by one cell
         while len(listCells) != 0:
@@ -123,7 +163,7 @@ class Solution:
             # if the cell is alive then it will check if there is an empty cell around it and if there is then it will randomly choose one of the empty cells and check if it will mutate or grow
             Solution.neiCheck(k, a, b)
             listCells.remove((a,b))
-        return sens, res # returns the matrix after one time step and the number of sensitive cells and resistant cells
+        return sens, res, pers  # returns the matrix after one time step and the number of sensitive cells, resistant cells, persistent cells and the total number of cells
     
     # this function will apply the treatment where the probability of death of a sensitive cell is doubled
     def treat_cell_kill(): 
@@ -190,7 +230,7 @@ class Solution:
             if treat_cell_slow == True:
                 if cell_applied_slow == True:
                     Solution.treat_cell_slow_off()
-        return          
+                
             
     def cell_treatment(n, cell_pop, num_times):
         global treat_applied
@@ -206,13 +246,13 @@ class Solution:
     def runCycle(l, f):
         ic.create_img(l,0)
         global cell_pop
-        f.write(f"Timestep, Sensitive cells, Resistant cells, Total cells \n")
+        f.write(f"Timestep, Sensitive cells, Resistant cells, Persistant cells, Total cells \n")
         for a in range(1, num_times):
             Solution.cell_treatment(a, cell_pop, num_times)
             cell_pop = 0
-            sens, res = Solution.time(l)
-            cell_pop = (sens + res)
+            sens, res, pers = Solution.time(l)
+            cell_pop = (sens + res + pers)
             ic.create_img(l,a)
-            f.write(f"{a}, {str(sens)}, {str(res)}, {str(cell_pop)} \n")
+            f.write(f"{a}, {str(sens)}, {str(res)}, {str(pers)}, {str(cell_pop)} \n")
         return "Done"
 

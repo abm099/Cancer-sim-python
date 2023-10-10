@@ -20,6 +20,8 @@ def create_img(cell_array,p):
                 array[x][y] = (0, 0, 0) # black
             elif cell_array[x][y] == 2:
                 array[x][y] = (0, 0, 255) # blue
+            elif cell_array[x][y] == 3:
+                array[x][y] = (255, 0, 0) # red
 
     # if not os.path.exists(dir_path):
     #     os.makedirs(dir_path)
