@@ -16,6 +16,7 @@ g = open(f"../../CellModel/simulation_Files/parameters_file({seed_value}).txt", 
 
 # working with square matrix
 matrix_size = 100
+num_times = timeStep.send_num_times()
 
 # random matrix of 0's and 1's
 k = np.random.randint(2, size=(matrix_size, matrix_size)) 
@@ -46,7 +47,9 @@ def write_parameters(seed, start, stop, slow, kill, treat_cell_kill, treat_cell_
     g.write(f"Adaptive treatment: {control_treat}\n")
 
 # write the parameters to the file g
-write_parameters(seed_value, start_treat, stop_treat, factor_slow, factor_kill ,treat_cell_kill, treat_cell_slow, inter_treat, control_treat)
+# write_parameters(seed_value, start_treat, stop_treat, factor_slow, factor_kill ,treat_cell_kill, treat_cell_slow, inter_treat, control_treat)
+
+
 
 # print(process_data(seed_value, factor_1, factor_2))
-print(timeStep.Solution.runCycle(h, f))
+print(timeStep.runCycle(h, f))
