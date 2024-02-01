@@ -6,6 +6,8 @@ import numpy as np
 # So that we can see the image clearly we will resize the image 
 resize_factor = 100
 
+# Commmit changes to the repository
+
 # write array to img
 def create_img(cell_array,p):
     array = np.zeros((len(cell_array), len(cell_array[0]), 3), dtype=np.uint8)

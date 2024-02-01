@@ -6,6 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import timeit
 
+# Commmit changes to the repository
+
 start = timeit.default_timer()
 
 print("Start simulation")
