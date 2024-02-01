@@ -3,11 +3,8 @@
 from PIL import Image 
 import numpy as np
 
-
 # So that we can see the image clearly we will resize the image 
 resize_factor = 100
-
-matt = [[1,0,1],[0,2,0],[1,0,1]]
 
 # write array to img
 def create_img(cell_array,p):
@@ -22,14 +19,8 @@ def create_img(cell_array,p):
                 array[x][y] = (0, 0, 255) # blue
             elif cell_array[x][y] == 3:
                 array[x][y] = (255, 0, 0) # red
-
-    # if not os.path.exists(dir_path):
-    #     os.makedirs(dir_path)
-
-    img = Image.fromarray(array) # fromarray() takes a numpy array and returns a PIL image
-    img = img.resize([int(resize_factor*x) for x in img.size], Image.BOX) # resize the image
+    img = Image.fromarray(array) 
+    img = img.resize([int(resize_factor*x) for x in img.size], Image.BOX) 
     img.save(f'../../CellModel/results/img_{p}.jpeg')
-    # img.show() # show the image
-
 
 
