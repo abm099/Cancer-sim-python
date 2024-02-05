@@ -3,6 +3,7 @@ import imageConverter as ic
 import random
 import numpy as np
 import time
+import pandas as pd
 
 # cell death and birth
 # dead cell is denote by 0 are meant to be empty spaces
@@ -19,10 +20,10 @@ import time
 treat_cell_kill = True # this bool is to enable the treatment to kill the increase the probability of death of the cell
 treat_cell_slow = True # this bool is to enable the treatment to slow the proliferation of the cell
 inter_treat = False # this bool is to enable the treatment to be applied at selected intervals
-adapt_treat = True # this bool is to enable the treatment that is applied to be adaptive to the population of the cell
+adapt_treat = False # this bool is to enable the treatment that is applied to be adaptive to the population of the cell
 # inter and adapt treat cannot be true at the same time
 
-num_times = 250 # number of times the time step function will run
+num_times = 1000 # number of times the time step function will run
 cell_pop = 0 # number of cells in the matrix
 treat_applied = False # boolean to check if the treatment has been applied
 
@@ -274,46 +275,61 @@ def create_Glider(i, j, matrix):
 # the use of arrays and tuples here is to store the data of the simulation 
 # the tuple will store the data of the simulation and the array will store the data of the simulation for the number of times the simulation will run
 
-def run_Sim(num_times): 
+simulations = 10
+
+def run_Sim(): 
     arr = []
-    e_sum = 0
     e_values = []
-    for a in range(1, 10):
+    f_values = []
+    g_values = []
+    h_values = []
+    for a in range(0, simulations):
         matrix_size = 100  # size of matrix
         l = np.zeros((matrix_size, matrix_size), np.int8)
         create_Glider(50, 50, l)
-        # sim_list = []
-        # print(f"Simulation # {a}")
+        sim_list = []
+        print(f"\t \t Simulation # {a}")
         global cell_pop, treatment_off_counter, treatment_on_counter
         treatment_off_counter, treatment_on_counter = 0, 0
+        e_value = []
+        f_value = []
+        f_value = []
+        g_value = []
+        h_value = []
         for b in range(1,num_times):
             cell_treatment(b, cell_pop, num_times)
             cell_pop = 0
             sens, res, pers = time_run(l)
             cell_pop = (sens + res + pers)
-            # out_put = (sens, res, pers, cell_pop, treatment_off_counter, treatment_on_counter)
+            e_value.append(sens)
+            f_value.append(res)
+            g_value.append(pers)
+            h_value.append(cell_pop)
+            out_put = (sens, res, pers, cell_pop, treatment_off_counter, treatment_on_counter)
             # print(b, cell_pop)
-            # sim_list.append(out_put)
-            # arr.append(sim_list)
-            # print(f"CURRENT LIST {list}") 
-        e_sum += treatment_on_counter
-    e_mean = e_sum / 10
-    e_values.append(e_mean)
-    return e_values
+            sim_list.append(tuple(out_put))
+            # print(f"CURRENT LIST {list}")
+        e_values.append(e_value)
+        f_values.append(f_value)
+        g_values.append(g_value)
+        h_values.append(h_value)
+        arr.append(sim_list)
+    df = pd.DataFrame(arr, columns=[f'Timestep {i+1}' for i in range(1,num_times)], index=[f'Simulations {i+1}' for i in range(0,simulations)]) 
+    return df, e_values, f_values, g_values, h_values
 
 # the parameter array is used to store the outputs of the simulations with different parameters
-# parameter_array = []
+parameter_dict = {}
 # testing varies parameters
 def parameter_testing(output_path): 
-    global start_treat, stop_treat
-    parameter_list = [(i, i-100) for i in range(2100, 4901, 1000)]
+    parameter_list = [i for i in range(1, 2, 1)]
     # h = open(output_path, "w")
-    for (x,y) in parameter_list: 
-        start_treat = x
-        stop_treat = y
-        print(f"Start: {start_treat}, Stop: {stop_treat}")
-        e_values = run_Sim(num_times)
-        # parameter_array.append(k)
-    return parameter_list, e_values 
+    e_values = []
+    f_values = []
+    for x in parameter_list: 
+        per_change = x
+        print(f"Delay of: {per_change}")
+        k, e_value, f_values, g_values, h_values = run_Sim()
+        parameter_dict[per_change] = k
+    return parameter_dict, parameter_list, e_value, f_values, g_values, h_values
 
-# Commmit changes to the repository
+
