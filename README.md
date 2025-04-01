@@ -1,4 +1,4 @@
-# Cancer-sim_python
+# Cancer-sim-python
 A agent based model of cancer 
 
 # **Simulation Pipeline Overview**
