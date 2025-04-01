@@ -1,58 +1,74 @@
 import timeStep as tS
-import numpy as np
 import pandas as pd
-import cellMatrix as cM
 import seaborn as sns
 import matplotlib.pyplot as plt
-import timeit
+import numpy as np
+import time
 
-print("Start simulation")
-
-start = timeit.default_timer()
 num_times = tS.send_num_times()
 seed_value = tS.seed_setter()
-out_put_path = f"../../CellModel/simulation_Files/E_values({seed_value}).txt"
-num_times = tS.send_num_times()
-output_array, sens_val, res_val, pers_val, total_val = tS.run_Sim()
+parameter_list_3 = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000]
+parameter_list = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]
+parameter_list_2 = [0.25, 0.5, 0.75]
 
-parameter_list_str = [i for i in range(1, num_times)]
-parameter = parameter_list_str*len(sens_val)
+def string_list_conversion(testing_type, i):
+    if isinstance(testing_type, list): 
+        if len(testing_type) != 1: 
+            return testing_type[i+1]
+    else:
+        return testing_type
 
-output_path = f"../../CellModel/simulation_Files/excel_file({seed_value}).xlsx"
+type_of_simulation = "perturbation"
+start_time = time.time()
+output_array, out_put_names, e_vales, f_vales, g_vales, h_vales = tS.parameter_testing(parameter_list_3, 5, type_of_simulation, parameter_list, parameter_list_2)
+end_time = time.time()
+notes_df = pd.DataFrame({"Notes": [out_put_names]})
+j = 0
+type_sim = "Perturbation Reference Lib"
+output_path = f"../../CellModel/simulation_Files/file_({type_sim}).xlsx"
 excel_writer = pd.ExcelWriter(output_path, engine='xlsxwriter')
-df = output_array.T
-sheet_name = 'Sheet1'
-df.to_excel(excel_writer, sheet_name=sheet_name, index=True, header=True)
+for i, df in output_array.items(): 
+    testing_types = string_list_conversion(type_of_simulation, j)
+    df = df.T
+    sheet_name = f'{i}_{testing_types}'
+    df.to_excel(excel_writer, sheet_name=sheet_name, index=True, header=True)
+    j += 1
+notes_df.to_excel(excel_writer, sheet_name='Vars', index=False, header=False)
 excel_writer.close()
 
-# Plot the data
-df = pd.DataFrame({
-    "Parameter": parameter,
-    "Sensitive cells": [val for sublist in sens_val for val in sublist],
-    "Resistant cells": [val for sublist in res_val for val in sublist],
-    "Persistent cells": [val for sublist in pers_val for val in sublist],
-    "Total cells": [val for sublist in total_val for val in sublist]
-})
+para = [x for x in range(1,num_times)]
+para = para* len(e_vales[0]*len(e_vales))
 
+e_values =  [val for sublist in e_vales for subsublist in sublist for val in subsublist]
+f_values =  [val for sublist in f_vales for subsublist in sublist for val in subsublist]
+g_values =  [val for sublist in g_vales for subsublist in sublist for val in subsublist]
+h_values =  [val for sublist in h_vales for subsublist in sublist for val in subsublist]
+
+
+# Plot the data
 sns.set_theme(style="ticks")
 plt.figure(figsize=(12, 8))
-ax1 = sns.lineplot(data=pd.melt(df, ["Parameter"]), x="Parameter", y="value", hue="variable", errorbar="sd")
-sns.color_palette()
-ax1.set(xlabel="Timesteps", title="Variation of Cell population", ylabel="Cell population")
-plt.legend(title="Cell type", loc="upper left")
-plt.savefig(f'../../CellModel/simulation_Files/plot_{seed_value}.png')
+df = pd.DataFrame({
+    "Timesteps": para,
+    "Sens": e_values,
+    "Res": f_values,
+    "Pers": g_values,
+    "Total": h_values
+})
+df_melt = df.melt('Timesteps', var_name='Cell population', value_name='Value')
 
-stop = timeit.default_timer()
-print('Time: ', stop - start)
-
-print("End simulation")
-
-# these are the important parameters
-g = open(f"../../CellModel/simulation_Files/parameters_file({seed_value}).txt", "w")
-start_treat, stop_treat, inter_steps, factor_slow, factor_kill, treat_cell_kill, treat_cell_slow, inter_treat, control_treat, factor_kill_pers, factor_slow_pers, per_change = tS.send_parameters()
-cM.write_parameters(g, seed_value, start_treat, stop_treat, inter_steps, factor_slow, factor_kill ,treat_cell_kill, treat_cell_slow, inter_treat, control_treat, factor_kill_pers, factor_slow_pers, per_change)
-
-
+sns.set_theme(style="ticks")
+ax1 = sns.lineplot(df_melt, x="Timesteps", y="Value", hue="Cell population", errorbar="sd")
+ax1.set(xlabel="Timesteps", title="Population Plot", ylabel="Population of Cells")
+plt.savefig(f'../../CellModel/simulation_Files/plot_treat_factors.png')
+del ax1
+plt.clf()
 
 
+ax2 = sns.lineplot(df_melt, x="Timesteps", y="Value", hue="Cell population", errorbar="sd")
+ax2.set(xlabel="Timesteps", title="Intermittent Treatment Representative", ylabel="Population of Cells")
+ax2.set_ylim(0, 250)
+plt.savefig(f'../../CellModel/simulation_Files/plot_treat_factors_adjusted.png')
+del ax2
+plt.clf()
 
